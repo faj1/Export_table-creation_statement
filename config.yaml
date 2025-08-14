@@ -1,0 +1,30 @@
+databases:
+  - name: "MySQL本地数据库"
+    type: "mysql"
+    host: "localhost"
+    port: 3306
+    username: "root"
+    password: "password"
+    database: "test"
+    
+  - name: "PostgreSQL本地数据库"
+    type: "postgres"
+    host: "localhost"
+    port: 5432
+    username: "postgres"
+    password: "password"
+    database: "test"
+    sslmode: "disable"
+    
+  - name: "MySQL生产数据库"
+    type: "mysql"
+    host: "prod.mysql.com"
+    port: 3306
+    username: "user"
+    password: "prod_password"
+    database: "production"
+
+# 输出配置
+output:
+  directory: "./output"  # 输出目录
+  filename_format: "{database}_{table}_ddl.sql"  # 文件名格式，{database}和{table}会被替换
