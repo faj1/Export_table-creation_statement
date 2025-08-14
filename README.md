@@ -80,15 +80,15 @@ go build -o export-ddl
 
 ## 输出文件
 
-程序会在输出目录中生成以下文件：
+程序会在输出目录中生成一个汇总文件：
 
-1. **单表文件**: `{数据库名}_{表名}_ddl.sql` - 每个表的建表语句
-2. **汇总文件**: `{数据库名}_all_tables_ddl.sql` - 所有表的建表语句合并
+**汇总文件**: `{数据库名}_tables_ddl.sql` - 包含所有选中表的建表语句
 
-每个文件都包含：
-- 数据库和表的基本信息
-- 导出时间
-- 完整的建表语句
+文件包含：
+- 数据库基本信息和导出时间
+- 表的目录索引
+- 按表名排序的完整建表语句
+- 清晰的分隔符和注释
 
 ## 命令行选项
 
@@ -128,7 +128,7 @@ databases:
 
 output:
   directory: "./backup/ddl"
-  filename_format: "prod_{table}_structure.sql"
+  filename_format: "prod_tables_ddl.sql"
 ```
 
 ### 运行示例
@@ -159,12 +159,14 @@ $ ./export-ddl
 请输入选择: 0
 已选择导出所有 5 个表
 
-开始导出 5 个表的建表语句...
+开始导出 5 个表的建表语句到一个文件...
 正在导出 [1/5]: users
-已保存: ./output/test_users_ddl.sql
 正在导出 [2/5]: orders
-已保存: ./output/test_orders_ddl.sql
-...
+正在导出 [3/5]: products
+正在导出 [4/5]: categories
+正在导出 [5/5]: order_items
+已保存到文件: ./output/test_tables_ddl.sql
+成功保存 5 个表的建表语句
 
 === 导出完成 ===
 成功导出: 5/5 个表

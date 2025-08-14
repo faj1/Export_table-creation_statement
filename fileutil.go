@@ -32,11 +32,10 @@ func (fu *FileUtil) EnsureOutputDirectory() error {
 	return nil
 }
 
-// GenerateFileName 生成文件名
-func (fu *FileUtil) GenerateFileName(databaseName, tableName string) string {
+// GenerateFileName 生成汇总文件名
+func (fu *FileUtil) GenerateFileName(databaseName string) string {
 	filename := fu.OutputConfig.FilenameFormat
 	filename = strings.ReplaceAll(filename, "{database}", databaseName)
-	filename = strings.ReplaceAll(filename, "{table}", tableName)
 
 	// 如果没有扩展名，添加.sql
 	if !strings.HasSuffix(filename, ".sql") {
@@ -46,34 +45,6 @@ func (fu *FileUtil) GenerateFileName(databaseName, tableName string) string {
 	return filename
 }
 
-// SaveDDL 保存DDL语句到文件
-func (fu *FileUtil) SaveDDL(databaseName, tableName, ddl string) error {
-	err := fu.EnsureOutputDirectory()
-	if err != nil {
-		return err
-	}
-
-	filename := fu.GenerateFileName(databaseName, tableName)
-	filepath := filepath.Join(fu.OutputConfig.Directory, filename)
-
-	// 在DDL前添加注释信息
-	content := fmt.Sprintf(`-- 数据库: %s
--- 表名: %s
--- 导出时间: %s
--- 生成工具: export-table-ddl
-
-%s
-`, databaseName, tableName, time.Now().Format("2006-01-02 15:04:05"), ddl)
-
-	err = os.WriteFile(filepath, []byte(content), 0644)
-	if err != nil {
-		return fmt.Errorf("保存DDL文件失败: %v", err)
-	}
-
-	fmt.Printf("已保存: %s\n", filepath)
-	return nil
-}
-
 // SaveAllTablesDDL 保存所有表的DDL到一个文件
 func (fu *FileUtil) SaveAllTablesDDL(databaseName string, tablesDDL map[string]string) error {
 	err := fu.EnsureOutputDirectory()
@@ -81,30 +52,58 @@ func (fu *FileUtil) SaveAllTablesDDL(databaseName string, tablesDDL map[string]s
 		return err
 	}
 
-	filename := fmt.Sprintf("%s_all_tables_ddl.sql", databaseName)
+	filename := fu.GenerateFileName(databaseName)
 	filepath := filepath.Join(fu.OutputConfig.Directory, filename)
 
+	// 按表名排序，保证输出顺序一致
+	var tableNames []string
+	for tableName := range tablesDDL {
+		tableNames = append(tableNames, tableName)
+	}
+
+	// 简单排序
+	for i := 0; i < len(tableNames)-1; i++ {
+		for j := i + 1; j < len(tableNames); j++ {
+			if tableNames[i] > tableNames[j] {
+				tableNames[i], tableNames[j] = tableNames[j], tableNames[i]
+			}
+		}
+	}
+
 	var content strings.Builder
-	content.WriteString(fmt.Sprintf(`-- 数据库: %s
+	content.WriteString(fmt.Sprintf(`-- =============================================
+-- 数据库表结构导出文件
+-- =============================================
+-- 数据库: %s
 -- 导出时间: %s
+-- 导出表数量: %d
 -- 生成工具: export-table-ddl
--- 包含所有表的建表语句
+-- =============================================
 
-`, databaseName, time.Now().Format("2006-01-02 15:04:05")))
+`, databaseName, time.Now().Format("2006-01-02 15:04:05"), len(tablesDDL)))
 
-	for tableName, ddl := range tablesDDL {
+	// 添加目录
+	content.WriteString("-- 表目录:\n")
+	for i, tableName := range tableNames {
+		content.WriteString(fmt.Sprintf("-- %d. %s\n", i+1, tableName))
+	}
+	content.WriteString("\n")
+
+	// 添加每个表的DDL
+	for i, tableName := range tableNames {
+		ddl := tablesDDL[tableName]
 		content.WriteString(fmt.Sprintf("\n-- ============================================\n"))
-		content.WriteString(fmt.Sprintf("-- 表名: %s\n", tableName))
-		content.WriteString(fmt.Sprintf("-- ============================================\n\n"))
+		content.WriteString(fmt.Sprintf("-- %d. 表名: %s\n", i+1, tableName))
+		content.WriteString("-- ============================================\n\n")
 		content.WriteString(ddl)
 		content.WriteString("\n\n")
 	}
 
 	err = os.WriteFile(filepath, []byte(content.String()), 0644)
 	if err != nil {
-		return fmt.Errorf("保存所有表DDL文件失败: %v", err)
+		return fmt.Errorf("保存DDL文件失败: %v", err)
 	}
 
-	fmt.Printf("已保存所有表DDL: %s\n", filepath)
+	fmt.Printf("已保存到文件: %s\n", filepath)
 	return nil
 }

@@ -70,7 +70,7 @@ func main() {
 	fileUtil := NewFileUtil(&config.Output)
 
 	// 导出表DDL
-	fmt.Printf("\n开始导出 %d 个表的建表语句...\n", len(selectedTables))
+	fmt.Printf("\n开始导出 %d 个表的建表语句到一个文件...\n", len(selectedTables))
 
 	successCount := 0
 	tablesDDL := make(map[string]string)
@@ -84,22 +84,17 @@ func main() {
 			continue
 		}
 
-		// 保存单个表的DDL文件
-		err = fileUtil.SaveDDL(selectedDB.Database, tableName, ddl)
-		if err != nil {
-			fmt.Printf("错误: 保存表 %s 的DDL失败: %v\n", tableName, err)
-			continue
-		}
-
 		tablesDDL[tableName] = ddl
 		successCount++
 	}
 
-	// 如果导出了多个表，也生成一个包含所有表的文件
-	if successCount > 1 {
+	// 保存所有表的DDL到一个文件
+	if successCount > 0 {
 		err = fileUtil.SaveAllTablesDDL(selectedDB.Database, tablesDDL)
 		if err != nil {
-			fmt.Printf("警告: 保存汇总DDL文件失败: %v\n", err)
+			fmt.Printf("错误: 保存DDL文件失败: %v\n", err)
+		} else {
+			fmt.Printf("成功保存 %d 个表的建表语句\n", successCount)
 		}
 	}
 

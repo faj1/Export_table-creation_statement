@@ -1,11 +1,11 @@
 databases:
-  - name: "MySQL本地数据库"
+  - name: "钱包服务本地数据库"
     type: "mysql"
-    host: "localhost"
+    host: "192.168.31.227"
     port: 3306
-    username: "root"
-    password: "password"
-    database: "test"
+    username: "wallet_service"
+    password: "dbXhkMWJkFrndfCX"
+    database: "wallet_service"
     
   - name: "PostgreSQL本地数据库"
     type: "postgres"
@@ -27,4 +27,4 @@ databases:
 # 输出配置
 output:
   directory: "./output"  # 输出目录
-  filename_format: "{database}_{table}_ddl.sql"  # 文件名格式，{database}和{table}会被替换
+  filename_format: "{database}_tables_ddl.sql"  # 汇总文件名格式，{database}会被替换
