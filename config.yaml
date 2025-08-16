@@ -6,7 +6,15 @@ databases:
     username: "wallet_service"
     password: "dbXhkMWJkFrndfCX"
     database: "wallet_service"
-    
+
+  - name: "网关本地数据库"
+    type: "mysql"
+    host: "192.168.31.227"
+    port: 3306
+    username: "apinto-gateway"
+    password: "3SsPxpK6a653n4Sb"
+    database: "apinto-gateway"
+   
   - name: "PostgreSQL本地数据库"
     type: "postgres"
     host: "localhost"
